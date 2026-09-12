@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>KAPLA AI Report Tool</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-wrap centered-brand">
+        <div class="brand-icon">K</div>
+        <div class="brand-copy">
+          <div class="eyebrow">KAPLA • AI ASSISTANT</div>
+          <h1>Tạo nhận xét & Script EMS</h1>
+          <p>Tạo nhận xét bằng AI, cá nhân hóa theo tên học sinh và điền nhanh vào EMS.</p>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="create">📝 Tạo Nhận Xét & Script</button>
+      <button class="tab" data-tab="script">📋 Script</button>
+      <button class="tab" data-tab="config">⚙️ Cấu Hình</button>
+      <button class="tab" data-tab="history">📚 Lịch Sử</button>
+      <button class="tab" data-tab="auto">⏰ Tự Động 1 Tháng</button>
+    </nav>
+
+    <main>
+<section class="panel active" id="create">
+        <div class="create-workspace">
+          <div class="create-left">
+            <div class="card flow-card">
+              <div class="section-title accent-title">🎯 Luồng sinh nhận xét</div>
+              <p class="muted flow-copy">
+                Một luồng duy nhất: AI sinh nhận xét theo điểm, còn nếu ô điểm đang trống thì hệ thống sẽ tự điền điểm mặc định theo cấu hình của bạn.
+              </p>
+            </div>
+
+            <div class="card lesson-card">
+              <label class="section-title accent-title" for="lessonDescription">📝 Mô tả buổi học <span class="title-note">(Dùng cho flow duy nhất)</span></label>
+              <textarea id="lessonDescription" class="large-input lesson-input" placeholder="Ví dụ: Học sinh làm quen Minecraft Education, di chuyển, phá/đặt khối, làm quen Code Builder và Agent..."></textarea>
+            </div>
+
+            <button class="btn primary generate-wide" id="generateAiBtn">✨ Sinh nhận xét bằng AI</button>
+            <button class="btn secondary demo-inline" id="demoBtn">Tạo nhanh không dùng AI</button>
+            <div class="hint generate-hint" id="generateHint">Gemini AI đã kết nối qua backend. API key được bảo vệ trên Vercel.</div>
+          </div>
+
+          <div class="create-right">
+            <div class="card result-card">
+              <div class="section-title accent-title">💬 Kết quả nhận xét</div>
+              <div class="result-score-line" id="resultScoreLine">NHẬN XÉT MỨC ĐIỂM</div>
+              <div id="commentVariants" class="comment-variants"></div>
+              <div class="hint result-hint">AI sẽ tạo nhiều cách nhận xét cho <b>Điểm mặc định</b>. Khi chạy Script, mỗi học sinh sẽ được luân phiên một nội dung khác nhau để tránh nhận xét bị trùng.</div>
+            </div>
+
+            <button class="btn create-script-wide" id="createScriptTopBtn">🔨 Tạo Script</button>
+          </div>
+        </div>
+
+        <div class="card rubric-card">
+          <div class="section-title accent-title">📊 Thang điểm đánh giá học sinh</div>
+          <p class="muted">Dùng làm tiêu chí tham khảo khi chấm điểm.</p>
+          <div id="rubricGrid" class="rubric-grid"></div>
+          <div class="note-box">
+            <b>Ghi chú tham khảo:</b>
+            <span>Học sinh cần tập trung hơn ở phần thực hành và nên luyện tập thêm sau buổi học để củng cố kỹ năng.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="script">
+        <div class="card">
+          <div class="row-between">
+            <div>
+              <div class="section-title">📋 Script: Thêm nhận xét, điểm & gửi</div>
+              <p class="muted">Dán script này vào F12 → Console khi đang mở trang điểm danh EMS.</p>
+            </div>
+            <button class="btn secondary" id="copyScriptBtn">📋 Copy</button>
+          </div>
+          <pre id="scriptOutput">/* Chưa có script, bấm "Tạo Script" để hiển thị */</pre>
+          <div class="actions">
+            <button class="btn primary" id="createScriptBtn">🔨 Tạo Script</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="config">
+        <div class="card">
+          <div class="section-title">🤖 Cấu Hình Prompt AI</div>
+
+          <div class="form-grid">
+            <div class="field wide">
+              <label>Gemini Backend</label>
+              <div class="backend-info">API key được lưu ở Vercel, không còn nằm trong trình duyệt.</div>
+              <div class="hint">Environment Variable: <b>GEMINI_API_KEY</b></div>
+            </div>
+              <div class="hint">Key được lưu trong localStorage của trình duyệt này. Nếu deploy public, không nên dùng cách này cho key quan trọng.</div>
+            </div>
+
+            <div class="field">
+              <label>Model</label>
+              <select id="modelName">
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash (ưu tiên)</option>
+                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+              </select>
+              <div class="hint">Nếu model đang quá tải, tool sẽ tự retry rồi chuyển sang model miễn phí khác bằng cùng API key.</div>
+            </div>
+
+            <div class="field">
+              <label>✨ Mức độ khác biệt</label>
+              <select id="variation">
+                <option value="low">Thấp</option>
+                <option value="medium" selected>Vừa</option>
+                <option value="high">Cao</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>📄 Độ dài nhận xét</label>
+              <select id="commentLength">
+                <option value="short">Ngắn</option>
+                <option value="medium" selected>Vừa</option>
+                <option value="long">Dài</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>🎤 Giọng văn</label>
+              <select id="tone">
+                <option value="natural" selected>Tự nhiên, giáo viên</option>
+                <option value="encouraging">Khuyến khích</option>
+                <option value="formal">Lịch sự, chuyên nghiệp</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>⭐ Điểm mặc định</label>
+              <select id="defaultScore">
+                <option value="10">10</option>
+                <option value="9">9</option>
+                <option value="8" selected>8</option>
+                <option value="7">7</option>
+                <option value="6">6</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="switch-list">
+            <label class="switch-row"><input id="mustCoverAll" type="checkbox" checked /> <span>🎯 Bắt buộc mỗi nhận xét bao gồm đầy đủ mục tiêu/hoạt động chính</span></label>
+            <label class="switch-row"><input id="allowEmoji" type="checkbox" /> <span>😊 Cho phép emoji trong nhận xét</span></label>
+            <label class="switch-row"><input id="banGeneric" type="checkbox" checked /> <span>⛔ Hạn chế từ chung chung như “quy trình”, “tổng thể”, “nền tảng”</span></label>
+            <label class="switch-row"><input id="onlyPresent" type="checkbox" checked /> <span>Chỉ điền học viên Có mặt / Đi trễ</span></label>
+            <label class="switch-row"><input id="autoSend" type="checkbox" /> <span>Tự bấm nút “Gửi” sau khi điền</span></label>
+          </div>
+
+          <div class="field">
+            <label>🧩 Base Prompt</label>
+            <textarea id="basePrompt" class="large-input"></textarea>
+          </div>
+
+          <div class="section-title compact">📌 Cấu hình mức điểm</div>
+          <div id="scoreConfigGrid" class="score-config-grid"></div>
+
+          <div class="actions">
+            <button class="btn secondary" id="resetConfigBtn">🔄 Khôi phục mặc định</button>
+            <button class="btn secondary" id="exportConfigBtn">📄 Xuất cấu hình</button>
+            <label class="btn secondary file-btn">📥 Nhập cấu hình<input type="file" id="importConfigInput" accept=".json"/></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="history">
+        <div class="card">
+          <div class="row-between">
+            <div>
+              <div class="section-title">📚 Lịch sử nhận xét gần nhất</div>
+              <p class="muted">Bấm một dòng để nạp lại hoặc xóa khi không cần.</p>
+            </div>
+            <button class="btn danger" id="clearHistoryBtn">Xóa tất cả</button>
+          </div>
+          <input id="historySearch" placeholder="Tìm theo mô tả hoặc nội dung nhận xét..." />
+          <div id="historyList" class="history-list"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="auto">
+        <div class="card">
+          <div class="section-title">⏰ Quy trình tự động 1 tháng</div>
+          <p class="muted">Bản local này lưu mẫu và kiểm tra hạn khi bạn mở trang. Muốn chạy thật khi trình duyệt đóng cần backend/cron trên Vercel.</p>
+
+          <div class="stats">
+            <div class="stat"><span id="templateCount">0</span><small>Mẫu đã lưu</small></div>
+            <div class="stat"><span id="dueCount">0</span><small>Đến hạn</small></div>
+            <div class="stat"><span id="autoHistoryCount">0</span><small>Lần auto đã lưu</small></div>
+          </div>
+
+          <div class="auto-grid">
+            <div class="subcard">
+              <h3>✍️ Thêm Form</h3>
+              <label>Tên ngắn</label>
+              <input id="autoName" placeholder="Ví dụ: Scratch buổi 1" />
+              <label>Mô tả buổi học</label>
+              <textarea id="autoDescription"></textarea>
+              <div class="actions">
+                <button class="btn primary" id="saveAutoBtn">💾 Lưu mẫu & chạy AI</button>
+              </div>
+            </div>
+
+            <div class="subcard">
+              <h3>📋 Danh Sách Mẫu</h3>
+              <div id="autoTemplateList"></div>
+            </div>
+
+            <div class="subcard">
+              <h3>🧾 Lịch Sử Auto</h3>
+              <div id="autoHistoryList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="copyright-footer">
+      © 2026 Synd. All rights reserved.
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="script.js"></script>
+</body>
+</html>
